@@ -93,7 +93,7 @@
     }
 
     async function addPost() {
-        const { data, error } = await supabaseClient
+        await supabaseClient
             .from("posts")
             .insert([{
                 title: title.value,
@@ -136,7 +136,11 @@
     }
 
     async function loadPosts() {
-        const { data } = await supabaseClient.from("posts").select("*").order("id", { ascending: false });
+        const { data } = await supabaseClient
+            .from("posts")
+            .select("*")
+            .order("id", { ascending: false });
+
         posts.innerHTML = data.map(renderPost).join("");
     }
 
