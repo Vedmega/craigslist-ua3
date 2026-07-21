@@ -1,1 +1,92 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>craigslist-ua | Дошка оголошень</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <h1>craigslist-ua</h1>
+        <p>Проста дошка оголошень у стилі Craigslist. Додайте, переглядайте та фільтруйте місцеві пропозиції.</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="card create-card">
+        <h2>Додати оголошення</h2>
+        <form id="create-form">
+          <div class="field-group">
+            <label for="title">Назва</label>
+            <input id="title" name="title" type="text" placeholder="Наприклад: Велосипед у хорошому стані" required />
+          </div>
+
+          <div class="field-group">
+            <label for="description">Опис</label>
+            <textarea id="description" name="description" rows="4" placeholder="Додайте деталі оголошення" required></textarea>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="category">Категорія</label>
+              <select id="category" name="category" required>
+                <option value="Продаж">Продаж</option>
+                <option value="Робота">Робота</option>
+                <option value="Житло">Житло</option>
+                <option value="Послуги">Послуги</option>
+                <option value="Спільнота">Спільнота</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="price">Ціна</label>
+              <input id="price" name="price" type="text" placeholder="наприклад 5000 грн або безкоштовно" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="contact">Контакт</label>
+            <input id="contact" name="contact" type="text" placeholder="Телефон або email" required />
+          </div>
+
+          <button type="submit" class="button-primary">Опублікувати оголошення</button>
+        </form>
+      </section>
+
+      <section class="card filter-card">
+        <h2>Пошук та фільтр</h2>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="search">Пошук</label>
+            <input id="search" type="search" placeholder="Пошук за текстом" />
+          </div>
+          <div class="field-group">
+            <label for="filter-category">Категорія</label>
+            <select id="filter-category">
+              <option value="">Усі категорії</option>
+              <option value="Продаж">Продаж</option>
+              <option value="Робота">Робота</option>
+              <option value="Житло">Житло</option>
+              <option value="Послуги">Послуги</option>
+              <option value="Спільнота">Спільнота</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="card listings-card">
+        <div class="listings-header">
+          <h2>Оголошення</h2>
+          <span id="count-label" class="badge">0</span>
+        </div>
+        <div id="listings" class="listings"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
 
