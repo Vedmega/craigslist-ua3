@@ -1,172 +1,264 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ListUA — Дошка оголошень України</title>
-
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        margin: 0;
-        padding: 0;
-    }
-
-    header {
-        background: #0057FF;
-        color: white;
-        padding: 20px;
-        text-align: center;
-        font-size: 28px;
-        font-weight: bold;
-    }
-
-    main {
-        max-width: 800px;
-        margin: 20px auto;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-    }
-
-    input, textarea {
-        width: 100%;
-        padding: 10px;
-        margin: 8px 0;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-    }
-
-    button {
-        padding: 10px 16px;
-        background: #0057FF;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-
-    button:hover {
-        background: #003fcc;
-    }
-
-    .post {
-        background: #fafafa;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-    }
-
-    .top-badge {
-        background: #FFD700;
-        color: #000;
-        padding: 4px 8px;
-        display: inline-block;
-        font-weight: bold;
-        margin-bottom: 6px;
-        border-radius: 4px;
-    }
-
-    footer {
-        text-align: center;
-        padding: 20px;
-        color: #777;
-    }
-</style>
+    <meta charset="UTF-8">
+    <title>ListUA — Оголошення України</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f7;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 480px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.08);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 26px;
+            text-align: center;
+            font-weight: 700;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #005fcc;
+        }
+        .sort-panel {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .sort-panel select,
+        .sort-panel input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .post {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #eee;
+        }
+        .post h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+        .post p {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+        }
+        .meta {
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
 </head>
-
 <body>
+<div class="container">
+    <h1>ListUA — Оголошення</h1>
 
-<header>ListUA</header>
+    <!-- Honeypot -->
+    <input id="hp" style="display:none">
 
-<main>
-    <h2>Створити оголошення</h2>
-
+    <!-- Форма -->
     <input id="title" placeholder="Заголовок">
+    <input id="region" placeholder="Місто / регіон">
+    <select id="category">
+        <option value="">Категорія</option>
+        <option value="Робота">Робота</option>
+        <option value="Нерухомість">Нерухомість</option>
+        <option value="Транспорт">Транспорт</option>
+        <option value="Послуги">Послуги</option>
+        <option value="Інше">Інше</option>
+    </select>
+    <input id="price" placeholder="Ціна (грн)">
     <textarea id="description" placeholder="Опис"></textarea>
-    <input id="price" placeholder="Ціна (грн)" type="number">
+    <input id="contact" placeholder="Контакт">
 
     <button onclick="createPost()">Опублікувати</button>
 
-    <hr>
+    <!-- Сортування -->
+    <div class="sort-panel">
+        <select id="sortSelect" onchange="applySort()">
+            <option value="new">Нові</option>
+            <option value="old">Старі</option>
+            <option value="cheap">Дешеві</option>
+            <option value="expensive">Дорогі</option>
+        </select>
+        <input id="searchInput" placeholder="Пошук..." oninput="applySort()">
+    </div>
 
-    <h2>Оголошення</h2>
+    <!-- Оголошення -->
     <div id="posts"></div>
-</main>
+</div>
 
-<footer>ListUA — сучасна українська дошка оголошень</footer>
-
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-const supabase = supabase.createClient(
-    "https://lcbdxnbeoresboukklva.supabase.co",
-    "sb_publishable_gYFaHN7htBJ2MJS2ZvEI2g_XsbC3d9m"
-);
+    const supabase = supabase.createClient(
+        "https://lcbdxnbeoresboukklva.supabase.co",
+        "YOUR_REAL_ANON_KEY_HERE"
+    );
 
-async function createPost() {
-    const title = document.getElementById("title").value;
-    const description = document.getElementById("description").value;
-    const price = document.getElementById("price").value;
+    let allPosts = [];
+    let lastPostTime = 0;
 
-    if (!title || !description || !price) {
-        alert("Заповніть всі поля!");
-        return;
+    function escapeHtml(str) {
+        return String(str || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 
-    await supabase.from("posts").insert({
-        title,
-        description,
-        price,
-        is_top: false
-    });
+    async function loadPosts() {
+        const { data, error } = await supabase
+            .from("posts")
+            .select("*")
+            .order("created_at", { ascending: false });
 
-    document.getElementById("title").value = "";
-    document.getElementById("description").value = "";
-    document.getElementById("price").value = "";
+        if (error) {
+            console.error(error);
+            return;
+        }
 
-    loadPosts();
-}
+        allPosts = data || [];
+        applySort();
+    }
 
-async function loadPosts() {
-    const { data } = await supabase
-        .from("posts")
-        .select("*")
-        .order("is_top", { ascending: false })
-        .order("created_at", { ascending: false });
-
-    const list = document.getElementById("posts");
-    list.innerHTML = "";
-
-    data.forEach(post => {
-        const item = document.createElement("div");
-        item.className = "post";
-
-        const topBadge = post.is_top ? "<div class='top-badge'>TOP</div>" : "";
-
-        item.innerHTML = `
-            ${topBadge}
-            <h3>${post.title}</h3>
-            <p>${post.description}</p>
-            <strong>${post.price} грн</strong><br><br>
-            <button onclick="makeTop('${post.id}')">Підняти в TOP</button>
+    function renderPost(post) {
+        const priceText = post.price ? `${post.price} грн` : "ціна не вказана";
+        return `
+            <div class="post">
+                <h3>${escapeHtml(post.title)}</h3>
+                <p>${escapeHtml(post.description)}</p>
+                <div class="meta">
+                    ${escapeHtml(post.region || "")} · ${escapeHtml(post.category || "")}
+                </div>
+                <div class="meta">
+                    ${priceText} · контакт: ${escapeHtml(post.contact || "")}
+                </div>
+            </div>
         `;
+    }
 
-        list.appendChild(item);
-    });
-}
+    function renderPosts(list) {
+        document.getElementById("posts").innerHTML =
+            list.map(renderPost).join("");
+    }
 
-async function makeTop(id) {
-    await supabase.from("posts").update({ is_top: true }).eq("id", id);
+    function applySort() {
+        let sorted = [...allPosts];
+        const sortType = document.getElementById("sortSelect").value;
+        const search = document.getElementById("searchInput").value.toLowerCase();
+
+        if (search.length > 0) {
+            sorted = sorted.filter(p =>
+                (p.title || "").toLowerCase().includes(search)
+            );
+        }
+
+        if (sortType === "new") sorted.sort((a, b) => b.id - a.id);
+        if (sortType === "old") sorted.sort((a, b) => a.id - b.id);
+        if (sortType === "cheap") sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+        if (sortType === "expensive") sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+
+        renderPosts(sorted);
+    }
+
+    async function createPost() {
+        if (document.getElementById("hp").value !== "") return;
+
+        const now = Date.now();
+        if (now - lastPostTime < 5000) {
+            alert("Занадто часто. Спробуй через 5 секунд.");
+            return;
+        }
+        lastPostTime = now;
+
+        const title = document.getElementById("title").value.trim();
+        const region = document.getElementById("region").value.trim();
+        const category = document.getElementById("category").value.trim();
+        const priceRaw = document.getElementById("price").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const contact = document.getElementById("contact").value.trim();
+
+        if (!title || !description || !contact) {
+            alert("Заповни заголовок, опис і контакт.");
+            return;
+        }
+
+        if (title.length > 200 || description.length > 2000) {
+            alert("Занадто довгий текст.");
+            return;
+        }
+
+        const price = priceRaw === "" ? null : Number(priceRaw);
+
+        const newPost = {
+            title,
+            region,
+            category,
+            price,
+            description,
+            contact,
+            created_at: new Date().toISOString()
+        };
+
+        const { data, error } = await supabase
+            .from("posts")
+            .insert([newPost])
+            .select();
+
+        if (error) {
+            console.error(error);
+            alert("Помилка збереження.");
+            return;
+        }
+
+        allPosts.unshift(data[0]);
+        applySort();
+
+        document.getElementById("title").value = "";
+        document.getElementById("region").value = "";
+        document.getElementById("category").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("contact").value = "";
+    }
+
     loadPosts();
-}
-
-document.addEventListener("DOMContentLoaded", loadPosts);
 </script>
-
 </body>
 </html>
