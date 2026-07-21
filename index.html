@@ -159,15 +159,28 @@
 
     function renderPost(post) {
         const priceText = post.price ? `${post.price} грн` : "ціна не вказана";
-        return `
-            <div class="post">
-                <h3>${escapeHtml(post.title)}</h3>
-                <p>${escapeHtml(post.description)}</p>
-                <div class="meta">
-                    ${escapeHtml(post.region || "")} · ${escapeHtml(post.category || "")}
-                </div>
-                <div class="meta">
-                    ${priceText} · контакт: ${escapeHtml(post.contact || "")}
+`
+            return `
+    <div class="post">
+        <h3>${escapeHtml(post.title)}</h3>
+        <p>${escapeHtml(post.description)}</p>
+
+        <div class="meta">
+            ${escapeHtml(post.region || "")} · ${escapeHtml(post.category || "")}
+        </div>
+
+        <div class="meta">
+            ${priceText} · контакт: ${escapeHtml(post.contact || "")}
+        </div>
+
+        <button class="delete-btn" onclick="deletePost(${post.id})">
+            Видалити
+        </button>
+    </div>
+`;
+
+        </button>
+
                 </div>
             </div>
         `;
