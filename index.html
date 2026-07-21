@@ -3,301 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <title>ListUA — Оголошення України</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f5f6f7;
-            margin: 0;
-            padding: 40px;
-            display: flex;
-            justify-content: center;
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 10px;
         }
-        .container {
-            width: 480px;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 0 25px rgba(0,0,0,0.08);
-        }
-        h1 {
-            margin-top: 0;
-            font-size: 26px;
-            text-align: center;
-            font-weight: 700;
-        }
-        input, textarea, select {
-            width: 100%;
+
+        .post {
+            border: 1px solid #ccc;
             padding: 12px;
-            margin-top: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 15px;
-            box-sizing: border-box;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            background: #fafafa;
         }
-        textarea {
-            min-height: 80px;
-            resize: vertical;
+
+        .meta {
+            color: #555;
+            font-size: 14px;
+            margin-top: 4px;
         }
-        button {
+
+        input, select {
             width: 100%;
-            padding: 14px;
-            margin-top: 15px;
-            background: #007bff;
+            padding: 8px;
+            margin: 6px 0;
+        }
+
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+
+        /* КНОПКА ВИДАЛИТИ */
+        .delete-btn {
+            background: #ff3b3b;
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: 600;
+            margin-top: 10px;
+            display: inline-block;
         }
-        button:hover {
-            background: #005fcc;
-        }
-        .delete-btn {
-    background: #ff3b3b;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 10px;
-    display: inline-block;
-}
 
-.delete-btn:hover {
-    background: #d62828;
-}
-
-        .sort-panel {
-            display: flex;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        .sort-panel select,
-        .sort-panel input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-        .post {
-            background: #fafafa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border: 1px solid #eee;
-        }
-        .post h3 {
-            margin: 0 0 8px 0;
-            font-size: 18px;
-        }
-        .post p {
-            margin: 0 0 8px 0;
-            font-size: 14px;
-        }
-        .meta {
-            font-size: 12px;
-            color: #777;
+        .delete-btn:hover {
+            background: #d62828;
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <h1>ListUA — Оголошення</h1>
 
-    <!-- Honeypot -->
-    <input id="hp" style="display:none">
+<h2>Додати оголошення</h2>
 
-    <!-- Форма -->
-    <input id="title" placeholder="Заголовок">
-    <input id="region" placeholder="Місто / регіон">
-    <select id="category">
-        <option value="">Категорія</option>
-        <option value="Робота">Робота</option>
-        <option value="Нерухомість">Нерухомість</option>
-        <option value="Транспорт">Транспорт</option>
-        <option value="Послуги">Послуги</option>
-        <option value="Інше">Інше</option>
-    </select>
-    <input id="price" placeholder="Ціна (грн)">
-    <textarea id="description" placeholder="Опис"></textarea>
-    <input id="contact" placeholder="Контакт">
+<input id="title" placeholder="Заголовок">
+<input id="description" placeholder="Опис">
+<input id="price" placeholder="Ціна">
+<input id="contact" placeholder="Контакт">
+<input id="region" placeholder="Регіон">
+<input id="category" placeholder="Категорія">
 
-    <button onclick="createPost()">Опублікувати</button>
+<button onclick="addPost()">Додати</button>
 
-    <!-- Сортування -->
-    <div class="sort-panel">
-        <select id="sortSelect" onchange="applySort()">
-            <option value="new">Нові</option>
-            <option value="old">Старі</option>
-            <option value="cheap">Дешеві</option>
-            <option value="expensive">Дорогі</option>
-        </select>
-        <input id="searchInput" placeholder="Пошук..." oninput="applySort()">
-    </div>
+<hr>
 
-    <!-- Оголошення -->
-    <div id="posts"></div>
-</div>
+<h2>Оголошення</h2>
+<div id="posts"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <script>
-    const supabase = supabase.createClient(
-        "https://lcbdxnbeoresboukklva.supabase.co",
-        "YOUR_REAL_ANON_KEY_HERE"
-    );
+    const supabaseUrl = "https://lcbdxnbeoresboukklva.supabase.co";
+    const supabaseKey = "YOUR_PUBLIC_ANON_KEY";
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let allPosts = [];
-    let lastPostTime = 0;
-
-    function escapeHtml(str) {
-        return String(str || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
+    function escapeHtml(text) {
+        return text.replace(/[&<>"']/g, function (m) {
+            return ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[m];
+        });
     }
 
-    async function loadPosts() {
-        const { data, error } = await supabase
+    async function addPost() {
+        const { data, error } = await supabaseClient
             .from("posts")
-            .select("*")
-            .order("created_at", { ascending: false });
+            .insert([{
+                title: title.value,
+                description: description.value,
+                price: price.value,
+                contact: contact.value,
+                region: region.value,
+                category: category.value
+            }]);
 
-        if (error) {
-            console.error(error);
-            return;
-        }
+        loadPosts();
+    }
 
-        allPosts = data || [];
-        applySort();
+    async function deletePost(id) {
+        await supabaseClient.from("posts").delete().eq("id", id);
+        loadPosts();
     }
 
     function renderPost(post) {
         const priceText = post.price ? `${post.price} грн` : "ціна не вказана";
-`
-            return `
-    <div class="post">
-        <h3>${escapeHtml(post.title)}</h3>
-        <p>${escapeHtml(post.description)}</p>
 
-        <div class="meta">
-            ${escapeHtml(post.region || "")} · ${escapeHtml(post.category || "")}
-        </div>
+        return `
+            <div class="post">
+                <h3>${escapeHtml(post.title)}</h3>
+                <p>${escapeHtml(post.description)}</p>
 
-        <div class="meta">
-            ${priceText} · контакт: ${escapeHtml(post.contact || "")}
-        </div>
-
-        <button class="delete-btn" onclick="deletePost(${post.id})">
-            Видалити
-        </button>
-    </div>
-`;
-
-        </button>
-
+                <div class="meta">
+                    ${escapeHtml(post.region || "")} · ${escapeHtml(post.category || "")}
                 </div>
+
+                <div class="meta">
+                    ${priceText} · контакт: ${escapeHtml(post.contact || "")}
+                </div>
+
+                <button class="delete-btn" onclick="deletePost(${post.id})">
+                    Видалити
+                </button>
             </div>
         `;
     }
 
-    function renderPosts(list) {
-        document.getElementById("posts").innerHTML =
-            list.map(renderPost).join("");
-    }
-
-    function applySort() {
-        let sorted = [...allPosts];
-        const sortType = document.getElementById("sortSelect").value;
-        const search = document.getElementById("searchInput").value.toLowerCase();
-
-        if (search.length > 0) {
-            sorted = sorted.filter(p =>
-                (p.title || "").toLowerCase().includes(search)
-            );
-        }
-
-        if (sortType === "new") sorted.sort((a, b) => b.id - a.id);
-        if (sortType === "old") sorted.sort((a, b) => a.id - b.id);
-        if (sortType === "cheap") sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
-        if (sortType === "expensive") sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
-
-        renderPosts(sorted);
-    }
-
-    async function createPost() {
-        if (document.getElementById("hp").value !== "") return;
-
-        const now = Date.now();
-        if (now - lastPostTime < 5000) {
-            alert("Занадто часто. Спробуй через 5 секунд.");
-            return;
-        }
-        lastPostTime = now;
-
-        const title = document.getElementById("title").value.trim();
-        const region = document.getElementById("region").value.trim();
-        const category = document.getElementById("category").value.trim();
-        const priceRaw = document.getElementById("price").value.trim();
-        const description = document.getElementById("description").value.trim();
-        const contact = document.getElementById("contact").value.trim();
-
-        if (!title || !description || !contact) {
-            alert("Заповни заголовок, опис і контакт.");
-            return;
-        }
-
-        if (title.length > 200 || description.length > 2000) {
-            alert("Занадто довгий текст.");
-            return;
-        }
-
-        const price = priceRaw === "" ? null : Number(priceRaw);
-
-        const newPost = {
-            title,
-            region,
-            category,
-            price,
-            description,
-            contact,
-            created_at: new Date().toISOString()
-        };
-
-        const { data, error } = await supabase
-            .from("posts")
-            .insert([newPost])
-            .select();
-
-        if (error) {
-            console.error(error);
-            alert("Помилка збереження.");
-            return;
-        }
-
-        allPosts.unshift(data[0]);
-        applySort();
-
-        document.getElementById("title").value = "";
-        document.getElementById("region").value = "";
-        document.getElementById("category").value = "";
-        document.getElementById("price").value = "";
-        document.getElementById("description").value = "";
-        document.getElementById("contact").value = "";
+    async function loadPosts() {
+        const { data } = await supabaseClient.from("posts").select("*").order("id", { ascending: false });
+        posts.innerHTML = data.map(renderPost).join("");
     }
 
     loadPosts();
 </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const supabase = supabase.createClient(
-    "https://lcbdxnbeoresboukklva.supabase.co",
-    "sb_publishable_gYFaHN7htBJ2MJS2ZvEI2g_XsbC3d9m"
-);
-</script>
-
-</body>
-</html>
 
 </body>
 </html>
